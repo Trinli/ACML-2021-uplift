@@ -16,6 +16,10 @@ from experiment_aux import *
 
 
 def cvt_experiment(data, k, cvt_class=ClassVariableTransformation, model_id="cvt"):
+    """
+    Class-variable transformation with calibration using isotonic regression.
+    """
+
     print("Runinng cvt_experiment with cvt_class=%s model_id=%s k=%s" % (cvt_class, model_id, k))
 
     results = []
@@ -63,6 +67,10 @@ def cvt_experiment(data, k, cvt_class=ClassVariableTransformation, model_id="cvt
 
 
 def dc_experiment(data, k, dc_class=DCLogisticRegression, model_id="dc"):
+    """
+    Double-classifier approach with isotonic regression for calibration.
+    """
+
     print("Runinng dc_experiment with dc_class=%s model_id=%s k=%s" % (dc_class, model_id, k))
 
     results = []
@@ -120,9 +128,13 @@ def run_experiment(path, model, k):
     Returns a pandas data frame with metrics.
 
     Args:
-    path (str):
-    model:
-    k:
+    path (str): Path and filename for dataset
+    model (str):
+     'cvt' for class-variable transformation with logistic regression
+     'cvtrf' for class-variable transformation with random forest
+     'dc' or 'dclr' for double-classifier with logistic regression
+     'dcrf' for double-classifier with random forest
+    k (int): undersampling factor to use
     """
 
     fp = gzip.open(path, 'rb') if path.endswith(".gz") else open(path, 'rb')

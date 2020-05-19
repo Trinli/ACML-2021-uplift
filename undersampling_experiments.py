@@ -71,12 +71,14 @@ def cvt_experiment(data, k_min=-1, k_max=500, k_step=10,
     metrics = uplift_metrics.UpliftMetrics(testing_set['y'],
                                            testing_set_pred,
                                            testing_set['t'])
-    print("Testing set metrics for CVT and best k ({}):".format(best_k))
+    print("\n\n")
+    print("Testing set metrics for CVT and best k")
+    print("Best k: {}".format(best_k))
     print(metrics)
     results.append([model_id, "testing", best_k] + metrics2row(metrics))
 
     results = pd.DataFrame(results).rename(
-                columns=dict(enumerate(["MODEL", "SUBSET", "k"] + COLNAMES)))
+        columns=dict(enumerate(["MODEL", "SUBSET", "k"] + COLNAMES)))
     return results, testing_set_pred
 
 

@@ -14,9 +14,9 @@ modeling relating to the publication ... blah, blah.
 5. Run undersampling experiments by running undersampling_experiments.py with suitable
    parameters, e.g.:
    python undersampling_experiments.py ./datasets/criteo-uplift.csv123.pickle.gz cvt 1,600,10
-    (replace '123' with whatever your file is named).
-    Note that the last print section shows the testing set metrics for the best model
-    for your testing set.
+    (replace '123' with whatever your file is named, '1,600,10' indicates "test k from
+    1 to 600 with a step of 10").
+    Note that the last print section shows the testing set metrics for the best model.
 6. Run isotonic regression experiments.
    -Tomasz, details please?
 
