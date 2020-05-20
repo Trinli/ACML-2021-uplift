@@ -149,8 +149,6 @@ def run_experiment(path, model, k):
         results, test_predictions = dc_experiment(data, k, DCLogisticRegression, "dc-calibrated")
     elif model == "dcrf":
         results, test_predictions = dc_experiment(data, k, DCRandomForest, "dcrf-calibrated")
-    elif model == "dcsvm":
-        results, test_predictions = dc_experiment(data, k, DCSVM, "dcsvm-calibrated")
     else:
         raise ValueError("Unknown model name=%s! Try: cvt/cvtrf/dclr==dc/dcrf/dcsvm instead." % model)
 
@@ -160,7 +158,7 @@ def run_experiment(path, model, k):
 
 
 if __name__ == '__main__':
-    try: 
+    try:
         path = sys.argv[1]
     except:
         print("An argument required - (gzipped) pickle file!")

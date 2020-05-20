@@ -14,10 +14,18 @@ modeling relating to the publication ... blah, blah.
 5. Run undersampling experiments by running undersampling_experiments.py with suitable
    parameters, e.g.:
    python undersampling_experiments.py ./datasets/criteo-uplift.csv123.pickle.gz cvt 1,600,10
-    (replace '123' with whatever your file is named, '1,600,10' indicates "test k from
-    1 to 600 with a step of 10").
+    (replace '123' with whatever your file is named, 'cvt' refers to class-variable
+    transformation, '1,600,10' indicates "test k from 1 to 600 with a step of 10").
     Note that the last print section shows the testing set metrics for the best model.
-6. Run isotonic regression experiments.
-   -Tomasz, details please?
+6. Run isotonic regression experiments, e.g.:
+   python isotonic_regression_experiments.py ./dataset/criteo-uplift.csv123.pickle.gz dclr 3
+   (replace '123' with your dataset file, 'dclr' refers to double-classifier with
+   logistic regression, '3' refers to k=3.
+
+The alternative models for both undersampling and isotonic regression experiments are
+'dc' (or 'dclr'): double-classifier with logistic regression
+'dcrf': double-classifier with random forest
+'cvt' (or 'cvtlr'): class-variable transformation with logistic regression
+'cvtrf': class-variable transformation with random forest
 
 # CIKM-2020-uplift
