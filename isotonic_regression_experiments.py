@@ -18,6 +18,13 @@ from experiment_aux import *
 def cvt_experiment(data, k, cvt_class=ClassVariableTransformation, model_id="cvt"):
     """
     Class-variable transformation with calibration using isotonic regression.
+
+    Args:
+    data (load_data.DatasetCollection): Data set
+    k (float): Undersampling factor to use (k * p(y=1) -> p_{new}(y=1)).
+    cvt_class (class): Uplift model to use for modeling
+    model_id (str): Textual description of model. Used for printing and
+     storing results.
     """
 
     print("Runinng cvt_experiment with cvt_class=%s model_id=%s k=%s" % (cvt_class, model_id, k))
@@ -33,13 +40,19 @@ def cvt_experiment(data, k, cvt_class=ClassVariableTransformation, model_id="cvt
 
     # Estimate testing set performance
     testing_set_pred = model.predict_uplift(X=testing_set['X'])
+    # Undo effect of change in samling rate:
+    testing_set_pred = testing_set_pred / k
     metrics = uplift_metrics.UpliftMetrics(testing_set['y'],
                                            testing_set_pred,
                                            testing_set['t'])
     results.append([model_id, "testing", k] + metrics2row(metrics))
 
+    print("Testing set metrics without calibration")
+    print(metrics)
+    
     # Calibrate the results:
     validation_set_pred = model.predict_uplift(X=validation_set['X'])
+    validation_set_pred = validation_set_pred / k
     metrics = uplift_metrics.UpliftMetrics(validation_set['y'],
                                            validation_set_pred,
                                            validation_set['t'])
@@ -54,12 +67,8 @@ def cvt_experiment(data, k, cvt_class=ClassVariableTransformation, model_id="cvt
                                            testing_set['t'])
     results.append([model_id, "testing_ir", k] + metrics2row(metrics))
 
-    # Sanity check
-    sanity_pred = testing_set_pred / k
-    metrics = uplift_metrics.UpliftMetrics(testing_set['y'],
-                                           sanity_pred,
-                                           testing_set['t'])
-    results.append([model_id, "testing_linear", k] + metrics2row(metrics))
+    print("Testing set metrics with calibration by isotonic regression")
+    print(metrics)
 
     results = pd.DataFrame(results).rename(
         columns=dict(enumerate(["MODEL", "SUBSET", "k"] + COLNAMES)))
@@ -69,6 +78,13 @@ def cvt_experiment(data, k, cvt_class=ClassVariableTransformation, model_id="cvt
 def dc_experiment(data, k, dc_class=DCLogisticRegression, model_id="dc"):
     """
     Double-classifier approach with isotonic regression for calibration.
+
+    Args:
+    data (load_data.DatasetCollection): Data set
+    k (float): Undersampling factor to use (k * p(y=1) -> p_{new}(y=1)).
+    dc_class (class): Uplift model to use for modeling
+    model_id (str): Textual description of model. Used for printing and
+     storing results.
     """
 
     print("Runinng dc_experiment with dc_class=%s model_id=%s k=%s" % (dc_class, model_id, k))
@@ -90,13 +106,18 @@ def dc_experiment(data, k, dc_class=DCLogisticRegression, model_id="dc"):
 
     # Estimate testing set metrics:
     testing_set_pred = model.predict_uplift(testing_set['X'])
+    testing_set_pred = testing_set_pred / k
     metrics = uplift_metrics.UpliftMetrics(testing_set['y'],
                                            testing_set_pred,
                                            testing_set['t'])
     results.append([model_id, "testing", k] + metrics2row(metrics))
 
+    print("Testing set metrics with calibration by isotonic regression")
+    print(metrics)
+
     # Calibrate the results:
     validation_set_pred = model.predict_uplift(X=validation_set['X'])
+    validation_set_pred = validation_set_pred / k
     metrics = uplift_metrics.UpliftMetrics(validation_set['y'],
                                            validation_set_pred,
                                            validation_set['t'])
@@ -111,12 +132,8 @@ def dc_experiment(data, k, dc_class=DCLogisticRegression, model_id="dc"):
                                            testing_set['t'])
     results.append([model_id, "testing_ir", k] + metrics2row(metrics))
 
-    # Sanity check
-    sanity_pred = testing_set_pred / k
-    metrics = uplift_metrics.UpliftMetrics(testing_set['y'],
-                                           sanity_pred,
-                                           testing_set['t'])
-    results.append([model_id, "testing_linear", k] + metrics2row(metrics))
+    print("Testing set metrics with calibration by isotonic regression")
+    print(metrics)
 
     results = pd.DataFrame(results).rename(
         columns=dict(enumerate(["MODEL", "SUBSET", "k"] + COLNAMES)))

@@ -178,7 +178,7 @@ class UpliftMetrics():
               "Algorithm: {0.algorithm}\n".format(self) +\
               "dataset: {0.dataset} \n".format(self) +\
               "Test description: {0.test_description}\n".format(self) +\
-              "E_r(conversion rate) \tAUUC \t\tEUCE \t\tMUCE \t\t" +\
+              "E_r(conversion rate) \tAUUC \t\t\tEUCE \t\tMUCE \t\t" +\
               "Improvement to random [%] \tQini-coefficient \n" +\
               "{0.e_r_conversion_rate:9.9} \t\t{0.auuc:9.9} \t".format(self) +\
               "{0.euce:9.9} \t{0.muce:9.9} \t".format(self) +\

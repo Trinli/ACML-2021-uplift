@@ -15,7 +15,7 @@ import h5py
 import csv
 import numpy as np
 from sklearn.preprocessing import normalize
-from torch.utils.data import Dataset
+
 
 # Data format as indices for features, label, and group and
 # some other info. This is essentially a configuration.
@@ -407,14 +407,14 @@ class DatasetCollection(object):
         This is suitable for class-variable transformation.
 
         Args:
-        k (int): If None, a balanced k is deduced from the data. Otherwise
-         this number will determine the change in positive rate in the data.
-         group_sampling (str): 'natural' implies no change in group sampling
-         rate, i.e. the number of samples in the treatment and control groups
-         stay constant. 
+        k (int): This number will determine the change in positive rate in
+         the data. 
+        group_sampling (str): 'natural' implies no change in group sampling
+         rate, i.e. the number of samples in the treatment and control
+         groups stay constant. 
          '11' indicates that there should be equally many treatment and
          control samples. This is useful with CVT and enforces 
-         p(t=0) = p(t=1)).
+         p(t=0) = p(t=1).
 
         Notes:
         If k is very large the number of negative samples might drop to zero,
@@ -570,37 +570,6 @@ class DatasetCollection(object):
         z = self.datasets[name]['z'][idx]
         # Note that 'r' in data filtered by treatment group is non-sensical.
         return {'X': X, 'y': y, 't': t, 'z': z}
-
-
-class DatasetWrapper(Dataset):
-    """
-    Class for wrapping datasets from class above into format accepted
-    by torch.utils.data.Dataloader.
-    """
-    def __init__(self, data):
-        """
-        Args:
-        data (dict): Dictionary with 'X', 'y', 'z', 't', and in
-         some cases 'r'.
-        """
-        self.data = data
-
-    def __len__(self):
-        return self.data['X'].shape[0]
-
-    def __getitem__(self, idx):
-        # Pytorch needs floats.
-        X = self.data['X'][idx, :]
-        y = self.data['y'][idx].astype(np.float64)
-        z = self.data['z'][idx].astype(np.float64)
-        t = self.data['t'][idx].astype(np.float64)
-        if 'r' in self.data.keys():
-            r = self.data['r'][idx].astype(np.float64)
-            return {'X': X, 'y': y, 'z': z, 't': t, 'r': r}
-        else:
-            # Datasets don't have 'r' after filtering by group.
-            # ('r' would be non-sensical in that case)
-            return {'X': X, 'y': y, 'z': z, 't': t}
 
 
 # Get some data quickly:
