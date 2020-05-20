@@ -19,7 +19,7 @@ CRITEO_FORMAT['file_name'] = 'criteo-uplift.csv'  # This is the actual experimen
 HILLSTROM_FORMAT = load_data.HILLSTROM_FORMAT_1
 # Already contains filename.
 
-DATASETS = [HILLSTROM_FORMAT]  #, CRITEO_FORMAT]
+DATASETS = [HILLSTROM_FORMAT, CRITEO_FORMAT]
 
 def create_pickles(path='./datasets/'):
     """
