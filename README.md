@@ -23,9 +23,9 @@ modeling relating to the publication ... blah, blah.
    logistic regression, '3' refers to k=3.
 
 The alternative models for both undersampling and isotonic regression experiments are
-*'dc' (or 'dclr'): double-classifier with logistic regression
-*'dcrf': double-classifier with random forest
-*'cvt' (or 'cvtlr'): class-variable transformation with logistic regression
-*'cvtrf': class-variable transformation with random forest
+* 'dc' (or 'dclr'): double-classifier with logistic regression
+* 'dcrf': double-classifier with random forest
+* 'cvt' (or 'cvtlr'): class-variable transformation with logistic regression
+* 'cvtrf': class-variable transformation with random forest
 
 # CIKM-2020-uplift
