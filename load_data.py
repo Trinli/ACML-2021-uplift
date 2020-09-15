@@ -15,7 +15,7 @@ import h5py
 import csv
 import numpy as np
 from sklearn.preprocessing import normalize
-
+from torch.utils.data import Dataset
 
 # Data format as indices for features, label, and group and
 # some other info. This is essentially a configuration.
@@ -78,13 +78,14 @@ class DatasetCollection(object):
     __subset_by_group(): Method for selecting only treatment, control, or all data.
     """
     def __init__(self, file_name,
-                 data_format=DATA_FORMAT):
+                 data_format=DATA_FORMAT, 
+                 set_conversion_rate=None):
         """
         Method for initializing object of class DataSet that will handle
         all dataset related issues.
 
         Attributes:
-        file_name (str): {'criteo-uplift.h5', 'criteo100k.csv', 'criteo-uplift.csv'}
+        file_name (str): {'criteo-uplift.h5', 'criteo100k.csv', 'criteo-uplift.csv', ...}
         nro_features (int): number of features in dataset. Assumed to be in columns 0:nro_features.
         seed (int): random seed to use for split of data.
 
@@ -101,7 +102,7 @@ class DatasetCollection(object):
         # Do some light preprocessing (e.g. identify class label, features and group).
         # This function will parse the data into X, y, and t following the format
         # specified in self.data_Format.
-        self._load_data()
+        self._load_data(set_conversion_rate=set_conversion_rate)
         # Randomize
         self._shuffle_data()
 
@@ -110,12 +111,18 @@ class DatasetCollection(object):
         # Populate self.datasets with predefined subsets:
         self._create_subsets()
 
-    def _load_data(self):
+    def _load_data(self, set_conversion_rate=None):
         """
         Method for loading data from file. Currently supports h5py-
         and csv-files.
 
         Maybe store the data into features (X), y, and t at this point already?
+        Args:
+        set_conversion_rate (float): If new_rate not None, then the new positive rate is defined
+         using this. Positive samples are randomly dropped until the entire dataset
+         exhibits a positive rate of new_rate (e.g. the range [.002, .005, .01, .02, .041]
+         would be reasonable). The natural positive rate is something like .041 for the
+         visit-label in the Criteo dataset.
         """
         tmp_data = []
         if self.file_name.endswith('.h5'):
@@ -187,12 +194,35 @@ class DatasetCollection(object):
         tmp = [row[self.data_format['t_idx']] for row in tmp_data]
         group_idx = [item in self.data_format['t_labels'] for item in
                      tmp]
+        
         group_idx = np.array(group_idx)
         self.X = tmp_X[group_idx, :]
         self.y = tmp_y[group_idx]
         self.t = tmp_t[group_idx]
         self.z = tmp_z[group_idx]
-
+        
+        # Insert code here for changing positive rate.
+        if set_conversion_rate is not None:
+            # 1. Estimate current conversion rate
+            tmp_rate = sum(self.y)/len(self.y)
+            # 2. Estimate how many positive samples should be kept
+            positive_y = int(set_conversion_rate / tmp_rate * sum(self.y))
+            # 3. Randomly draw the amount of positive samples desired
+            # Was 'y' boolean?
+            tmp_pos_idx = np.random.choice([idx for idx, item in enumerate(self.y) if item],
+                                           size=positive_y,
+                                           replace=False)
+            # 4. Identify all negative samples
+            tmp_neg_idx = np.array([idx for idx, item in enumerate(self.y) if not item])
+            # 5. Populate X, y, t, and z -vectors (matices).
+            tmp_idx = np.concatenate((tmp_pos_idx, tmp_neg_idx))
+            # Shuffle in place:
+            np.random.shuffle(tmp_idx)
+            self.X = self.X[tmp_idx, :]
+            self.y = self.y[tmp_idx]
+            self.t = self.t[tmp_idx]
+            self.z = self.z[tmp_idx]
+        
         # Print some statistics for the loaded data:
         print("Dataset {} loaded".format(self.file_name))
         print("\t\t\t#y\t#samples\tconversion rate")
@@ -334,6 +364,10 @@ class DatasetCollection(object):
         1:1 undersampling only for SVM double classifier (with separated
         (treatment and control sets)
         1:1:1:1 used together with CVT (any base learner)
+
+        Notes:
+        Only the '1:1' is theoretically sound in this method. Changing to 1:1:1:1
+        is just a quick hack. k_undersampling() is better.
         """
         tmp = self.datasets[name]
         tot_samples = len(tmp['t'])
@@ -351,6 +385,7 @@ class DatasetCollection(object):
             idx = np.concatenate([treatment_idx[:n_samples],
                                   control_idx[:n_samples]])
         elif method == '1:1:1:1':
+            print("Note that the 1:1:1:1 method is not theoretically sound. Perhaps deprecate?")
             # positive_treatment:negative_treatment:positive_control:
             # negative_control, 1:1:1:1
             # Looking for min of positive or negative classes in any group:
@@ -407,14 +442,14 @@ class DatasetCollection(object):
         This is suitable for class-variable transformation.
 
         Args:
-        k (int): This number will determine the change in positive rate in
-         the data. 
-        group_sampling (str): 'natural' implies no change in group sampling
-         rate, i.e. the number of samples in the treatment and control
-         groups stay constant. 
+        k (int): If None, a balanced k is deduced from the data. Otherwise
+         this number will determine the change in positive rate in the data.
+         group_sampling (str): 'natural' implies no change in group sampling
+         rate, i.e. the number of samples in the treatment and control groups
+         stay constant. 
          '11' indicates that there should be equally many treatment and
          control samples. This is useful with CVT and enforces 
-         p(t=0) = p(t=1).
+         p(t=0) = p(t=1)).
 
         Notes:
         If k is very large the number of negative samples might drop to zero,
@@ -496,8 +531,10 @@ class DatasetCollection(object):
         tmp_y = self['training_set']['y'][idx]
         tmp_t = self['training_set']['t'][idx]
         tmp_z = self['training_set']['z'][idx]
+        # We will also need 'r' here now (MSE-gradient)!
+        tmp_r = self._revert_label(tmp_y, tmp_t)
         
-        return {'X': tmp_X, 'y': tmp_y, 'z': tmp_z, 't': tmp_t}
+        return {'X': tmp_X, 'y': tmp_y, 'z': tmp_z, 't': tmp_t, 'r': tmp_r}
         
 
     def __getitem__(self, *args):
@@ -570,6 +607,37 @@ class DatasetCollection(object):
         z = self.datasets[name]['z'][idx]
         # Note that 'r' in data filtered by treatment group is non-sensical.
         return {'X': X, 'y': y, 't': t, 'z': z}
+
+
+class DatasetWrapper(Dataset):
+    """
+    Class for wrapping datasets from class above into format accepted
+    by torch.utils.data.Dataloader.
+    """
+    def __init__(self, data):
+        """
+        Args:
+        data (dict): Dictionary with 'X', 'y', 'z', 't', and in
+         some cases 'r'.
+        """
+        self.data = data
+
+    def __len__(self):
+        return self.data['X'].shape[0]
+
+    def __getitem__(self, idx):
+        # Pytorch needs floats.
+        X = self.data['X'][idx, :]
+        y = self.data['y'][idx].astype(np.float64)
+        z = self.data['z'][idx].astype(np.float64)
+        t = self.data['t'][idx].astype(np.float64)
+        if 'r' in self.data.keys():
+            r = self.data['r'][idx].astype(np.float64)
+            return {'X': X, 'y': y, 'z': z, 't': t, 'r': r}
+        else:
+            # Datasets don't have 'r' after filtering by group.
+            # ('r' would be non-sensical in that case)
+            return {'X': X, 'y': y, 'z': z, 't': t}
 
 
 # Get some data quickly:
