@@ -4,11 +4,11 @@ the experiments run investigate the effect of baseline conversion
 rate in the data vs. performance of undersampling. The experiments
 are done on the "visit" label in the Criteo dataset.
 
-Replace the contents of "files" to match the files you have created.
 """
 
 # Enable imports from parent directory:
 import sys
+import os
 sys.path.insert(1, os.path.join(sys.path[0], '..'))
 
 import gzip
@@ -16,7 +16,8 @@ import numpy as np
 import pickle
 import load_data
 import pickle_dataset
-import cvt_underclass_test
+# import cvt_underclass_test
+import undersampling_experiments as cvt_underclass_test
 from matplotlib import pyplot as plt
 from os import listdir
 from os.path import isfile, join
@@ -24,20 +25,13 @@ from os.path import isfile, join
 # path to dataset files
 data_path = './synthetic_data/'
 path = "./"
-# dataset files to iterate over
-# Keep conversion rate order of files!!!
-# files = ['criteo-uplift.csv0.001.3756116055.gz', 
-#         'criteo-uplift.csv0.002.1041642162.gz',
-#         'criteo-uplift.csv0.005.1345760781.gz',
-#         'criteo-uplift.csv0.01.125476986.gz',
-#         'criteo-uplift.csv0.02.2992998466.gz', 
-#         'criteo-uplift.csv0.041.2587620614.gz']
-# corresponding_conversion_rates = [0.001, 0.002, 0.005, 0.01, 0.02, 0.041]
 
 def run_experiment():
     results = []
     files = []
     conversion_rates = []
+    # Look for generated files in "./synthetic_data/"
+    # and run experiments for them.
     for file_ in listdir(data_path):
         file_location = join(data_path, file_)
         if not isfile(file_location):
@@ -53,7 +47,7 @@ def run_experiment():
         tmp = file_[17:22]
         if tmp.endswith('.'):
             tmp = tmp[:-1]
-        conversion_rates.append(tmp)
+        conversion_rates.append(float(tmp))
         
     for file_, conversion_rate in zip(files, conversion_rates):
         # Experiments!

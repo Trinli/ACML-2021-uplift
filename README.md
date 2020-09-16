@@ -1,6 +1,6 @@
 # Undersampling and calibration for uplift modeling
 Code for undersampling and calibration for uplift
-modeling relating to the publication ... blah, blah.
+modeling relating to the publication.
 
 1. Download data
 - http://ailab.criteo.com/criteo-uplift-prediction-dataset/
