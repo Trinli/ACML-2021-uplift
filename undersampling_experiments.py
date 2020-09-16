@@ -16,7 +16,9 @@ from experiment_aux import *
 
 
 def cvt_experiment(data, k_min=-1, k_max=500, k_step=10, 
-                   cvt_class=ClassVariableTransformation, model_id="cvt"):
+                   cvt_class=ClassVariableTransformation, model_id="cvt",
+                   test_name=None,
+                   file_name=None):
     """
     Function for finding optimal 'k' for undersamling with class-variable
     transformation (or whatever uplift classifier you chose to pass) and
@@ -30,6 +32,8 @@ def cvt_experiment(data, k_min=-1, k_max=500, k_step=10,
      k_step is five, testable k will be [1, 6, 11, ...].
     cvt_class: Class of uplift classifier
     model_id (str): Description of model tested.
+    test_name (str): Name for test to be saved in csv with results..
+    file_name (str): Name of dataset file
     """
 
     print("Runinng cvt_experiment with cvt_class=%s model_id=%s" % (cvt_class, model_id))
@@ -55,8 +59,13 @@ def cvt_experiment(data, k_min=-1, k_max=500, k_step=10,
         predictions = model.predict_uplift(X=validation_set['X'])
         metrics = uplift_metrics.UpliftMetrics(validation_set['y'],
                                                predictions,
-                                               validation_set['t'])
-
+                                               validation_set['t'],
+                                               test_name=test_name,
+                                               test_description="validation set",
+                                               algorithm=model_id,
+                                               dataset=file_name,
+                                               parameters='k={}'.format(i))
+        metrics.write_to_csv()
         if metrics.improvement_to_random > best_improvement_to_random:
             best_improvement_to_random = metrics.improvement_to_random
             best_model = copy.deepcopy(model)
@@ -70,7 +79,13 @@ def cvt_experiment(data, k_min=-1, k_max=500, k_step=10,
     testing_set_pred = best_model.predict_uplift(X=testing_set['X'])
     metrics = uplift_metrics.UpliftMetrics(testing_set['y'],
                                            testing_set_pred,
-                                           testing_set['t'])
+                                           testing_set['t'],
+                                           test_name=test_name,
+                                           test_description="testing set",
+                                           algorithm=model_id,
+                                           dataset=file_name,
+                                           parameters='k={}'.format(best_k))
+    metrics.write_to_csv()
     print("\n\n")
     print("Testing set metrics for CVT and best k")
     print("Best k: {}".format(best_k))
@@ -83,7 +98,9 @@ def cvt_experiment(data, k_min=-1, k_max=500, k_step=10,
 
 
 def dc_experiment(data, k_min=-1, k_max=50, k_step=1, 
-                  dc_class=DCLogisticRegression, model_id="dc"):
+                  dc_class=DCLogisticRegression, model_id="dc",
+                  test_name=None,
+                  file_name=None):
     """
     Function for finding optimal 'k' with double-classifier
     approach and metrics for said k.
@@ -96,6 +113,8 @@ def dc_experiment(data, k_min=-1, k_max=50, k_step=1,
      k_step is five, testable k will be [1, 6, 11, ...].
     cvt_class: Class of uplift classifier
     model_id (str): Description of model tested.
+    test_name (str): Name for test to be saved in csv with results..
+    file_name (str): Name of dataset file
     """
 
     print("Runinng dc_experiment with dc_class=%s model_id=%s" % (dc_class, model_id))
@@ -127,7 +146,13 @@ def dc_experiment(data, k_min=-1, k_max=50, k_step=1,
         predictions = model.predict_uplift(validation_set['X'])
         metrics = uplift_metrics.UpliftMetrics(validation_set['y'],
                                                predictions,
-                                               validation_set['t'])
+                                               validation_set['t'],
+                                               test_name=test_name,
+                                               test_description="validation set",
+                                               algorithm=model_id,
+                                               dataset=file_name,
+                                               parameters='k={}'.format(i))
+        metrics.write_to_csv()
 
         if metrics.improvement_to_random > best_improvement_to_random:
             best_improvement_to_random = metrics.improvement_to_random
@@ -142,7 +167,14 @@ def dc_experiment(data, k_min=-1, k_max=50, k_step=1,
     testing_set_pred = best_model.predict_uplift(testing_set['X'])
     metrics = uplift_metrics.UpliftMetrics(testing_set['y'],
                                            testing_set_pred,
-                                           testing_set['t'])
+                                           testing_set['t'],
+                                           test_name=test_name,
+                                           test_description="testing set",
+                                           algorithm=model_id,
+                                           dataset=file_name,
+                                           parameters='k={}'.format(best_k))
+    metrics.write_to_csv()
+
     results.append([model_id, "testing", best_k] + metrics2row(metrics))
     print("DC testing set metrics")
     print("best k: {}".format(best_k))
@@ -176,13 +208,22 @@ def run_experiment(path, model, k_min,  k_max, k_step):
     fp.close()
 
     if model == "cvt":
-        results, test_predictions = cvt_experiment(data, k_min, k_max, k_step, ClassVariableTransformation, "cvt")
+        results, test_predictions = cvt_experiment(data, k_min, k_max, k_step, ClassVariableTransformation, "cvt",
+                                                   test_name="Class-variable transformation with LR and undersampling",
+                                                   file_name=path)
     elif model == "cvtrf":
-        results, test_predictions = cvt_experiment(data, k_min, k_max, k_step, CVTRandomForest, "cvtrf")
+        results, test_predictions = cvt_experiment(data, k_min, k_max, k_step, CVTRandomForest, "cvtrf",
+                                                   test_name="Class-variable transformation with RF and undersampling",
+                                                   file_name=path)
     elif model == "dc" or model == "dclr":
-        results, test_predictions = dc_experiment(data, k_min, k_max, k_step, DCLogisticRegression, "dc")
+        results, test_predictions = dc_experiment(data, k_min, k_max, k_step, DCLogisticRegression, "dc",
+                                                  test_name="Double-classifier with LR and undersampling",
+                                                  file_name=path)
     elif model == "dcrf":
-        results, test_predictions = dc_experiment(data, k_min, k_max, k_step, DCRandomForest, "dcrf")
+        results, test_predictions = dc_experiment(data, k_min, k_max, k_step, DCRandomForest, "dcrf",
+                                                  test_name="Double-classifier with RF and undersampling",
+                                                  file_name=path)
+
     else:
         raise ValueError("Unknown model name=%s! Try: cvt/cvtrf/dclr==dc/dcrf/dcsvm instead." % model)
 

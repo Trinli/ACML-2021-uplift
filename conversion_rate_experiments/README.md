@@ -13,3 +13,5 @@ Code for conversion rate experiments for uplift modeling.
    experiments. The results are printed to screen, although they are also
    stored in a rather convoluted format to file. We will have to fix that
    before publishing.
+4. Results are printed to screen and stored in uplift_results.csv. Look for rows with
+   'Test description' set to 'testing set'.

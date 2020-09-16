@@ -15,9 +15,11 @@ Requirements are listed in requirements.txt.
 2. Extract data to .csv-file and store in ./datasets/
 3. Run pickle_dataset.py to perform the normalization we used in the experiments.
    The script also splits the data randomly into training, validation, and testing sets,
-   and performs the class-variable transformation to the label.
+   and creates a new label by running the class-variable transformation.
    The dataset can be zipped (.gz) to save space, but this is not mandatory.
+   We recommend reserving 120 GB of RAM for this.
    In the paper, we ran this 10 times to get 10 differently ranomized data sets.
+   Be patient. Expect this step to take hours.
 
 ## Experiments
 1. Run undersampling experiments by running undersampling_experiments.py with suitable
@@ -30,6 +32,8 @@ Requirements are listed in requirements.txt.
    ```python isotonic_regression_experiments.py ./dataset/criteo-uplift.csv123.pickle.gz dclr 3```
    (replace '123' with your dataset file, 'dclr' refers to double-classifier with
    logistic regression, '3' refers to k=3).
+3. Results are printed to screen and stored in uplift_results.csv. Look for rows with 
+   'Test description' set to 'testing set'.
 
 The alternative models for both undersampling and isotonic regression experiments are
  - 'dc' (or 'dclr'): double-classifier with logistic regression

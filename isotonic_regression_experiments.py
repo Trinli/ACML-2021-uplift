@@ -15,7 +15,9 @@ from experiment_models import *
 from experiment_aux import *
 
 
-def cvt_experiment(data, k, cvt_class=ClassVariableTransformation, model_id="cvt"):
+def cvt_experiment(data, k, cvt_class=ClassVariableTransformation, model_id="cvt",
+                   test_name=None,
+                   file_name=None):
     """
     Class-variable transformation with calibration using isotonic regression.
 
@@ -25,6 +27,8 @@ def cvt_experiment(data, k, cvt_class=ClassVariableTransformation, model_id="cvt
     cvt_class (class): Uplift model to use for modeling
     model_id (str): Textual description of model. Used for printing and
      storing results.
+    test_name (str): Name for test to be saved in csv with results..
+    file_name (str): Name of dataset file
     """
 
     print("Runinng cvt_experiment with cvt_class=%s model_id=%s k=%s" % (cvt_class, model_id, k))
@@ -44,7 +48,12 @@ def cvt_experiment(data, k, cvt_class=ClassVariableTransformation, model_id="cvt
     testing_set_pred = testing_set_pred / k
     metrics = uplift_metrics.UpliftMetrics(testing_set['y'],
                                            testing_set_pred,
-                                           testing_set['t'])
+                                           testing_set['t'],
+                                           test_name=test_name,
+                                           test_description="testing set before IR",
+                                           algorithm=model_id,
+                                           dataset=file_name,
+                                           parameters='k={}'.format(k))
     results.append([model_id, "testing", k] + metrics2row(metrics))
 
     print("Testing set metrics without calibration")
@@ -64,7 +73,12 @@ def cvt_experiment(data, k, cvt_class=ClassVariableTransformation, model_id="cvt
     ir_pred = ir_model.predict_uplift(testing_set_pred)
     metrics = uplift_metrics.UpliftMetrics(testing_set['y'],
                                            ir_pred,
-                                           testing_set['t'])
+                                           testing_set['t'],
+                                           test_name=test_name,
+                                           test_description="testing set after IR",
+                                           algorithm=model_id,
+                                           dataset=file_name,
+                                           parameters='k={}'.format(k))
     results.append([model_id, "testing_ir", k] + metrics2row(metrics))
 
     print("Testing set metrics with calibration by isotonic regression")
@@ -75,7 +89,9 @@ def cvt_experiment(data, k, cvt_class=ClassVariableTransformation, model_id="cvt
     return results, ir_pred
 
 
-def dc_experiment(data, k, dc_class=DCLogisticRegression, model_id="dc"):
+def dc_experiment(data, k, dc_class=DCLogisticRegression, model_id="dc",
+                  test_name=None,
+                  file_name=None):
     """
     Double-classifier approach with isotonic regression for calibration.
 
@@ -85,6 +101,8 @@ def dc_experiment(data, k, dc_class=DCLogisticRegression, model_id="dc"):
     dc_class (class): Uplift model to use for modeling
     model_id (str): Textual description of model. Used for printing and
      storing results.
+    test_name (str): Name for test to be saved in csv with results..
+    file_name (str): Name of dataset file
     """
 
     print("Runinng dc_experiment with dc_class=%s model_id=%s k=%s" % (dc_class, model_id, k))
@@ -109,7 +127,12 @@ def dc_experiment(data, k, dc_class=DCLogisticRegression, model_id="dc"):
     testing_set_pred = testing_set_pred / k
     metrics = uplift_metrics.UpliftMetrics(testing_set['y'],
                                            testing_set_pred,
-                                           testing_set['t'])
+                                           testing_set['t'],
+                                           test_name=test_name,
+                                           test_description="testing set before IR",
+                                           algorithm=model_id,
+                                           dataset=file_name,
+                                           parameters='k={}'.format(k))
     results.append([model_id, "testing", k] + metrics2row(metrics))
 
     print("Testing set metrics with calibration by isotonic regression")
@@ -129,7 +152,12 @@ def dc_experiment(data, k, dc_class=DCLogisticRegression, model_id="dc"):
     ir_pred = ir_model.predict_uplift(testing_set_pred)
     metrics = uplift_metrics.UpliftMetrics(testing_set['y'],
                                            ir_pred,
-                                           testing_set['t'])
+                                           testing_set['t'],
+                                           test_name=test_name,
+                                           test_description="testing set after IR",
+                                           algorithm=model_id,
+                                           dataset=file_name,
+                                           parameters='k={}'.format(k))
     results.append([model_id, "testing_ir", k] + metrics2row(metrics))
 
     print("Testing set metrics with calibration by isotonic regression")
@@ -159,13 +187,21 @@ def run_experiment(path, model, k):
     fp.close()
 
     if model == "cvt":
-        results, test_predictions = cvt_experiment(data, k, ClassVariableTransformation, "cvt-calibrated")
+        results, test_predictions = cvt_experiment(data, k, ClassVariableTransformation, "cvt-calibrated",
+                                                   test_name="Class-variable transformation with LR, undersampling and IR",
+                                                   file_name=path)
     elif model == "cvtrf":
-        results, test_predictions = cvt_experiment(data, k, CVTRandomForest, "cvtrf-calibrated")
+        results, test_predictions = cvt_experiment(data, k, CVTRandomForest, "cvtrf-calibrated",
+                                                   test_name="Class-variable transformation with RF, undersampling and IR",
+                                                   file_name=path)
     elif model == "dc" or model == "dclr":
-        results, test_predictions = dc_experiment(data, k, DCLogisticRegression, "dc-calibrated")
+        results, test_predictions = dc_experiment(data, k, DCLogisticRegression, "dc-calibrated",
+                                                  test_name="Double-classifier with LR, undersampling and IR",
+                                                  file_name=path)
     elif model == "dcrf":
-        results, test_predictions = dc_experiment(data, k, DCRandomForest, "dcrf-calibrated")
+        results, test_predictions = dc_experiment(data, k, DCRandomForest, "dcrf-calibrated",
+                                                  test_name="Double-classifier with RF, undersampling and IR",
+                                                  file_name=path)
     else:
         raise ValueError("Unknown model name=%s! Try: cvt/cvtrf/dclr==dc/dcrf/dcsvm instead." % model)
 

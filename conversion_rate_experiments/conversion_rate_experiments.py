@@ -69,7 +69,9 @@ def run_experiment():
         tmp_results = cvt_underclass_test.cvt_experiment(tmp_data,
                                                          k_min=i_min,
                                                          k_max=i_max,
-                                                         k_step=step_size)
+                                                         k_step=step_size,
+                                                         test_name="CVT with undersampling for data with conversion rate {}.".format(conversion_rate),
+                                                         file_name=file_)
         print("Saving results...")
         results.append([conversion_rate, tmp_results])  # Does this include optimal k?
         #with gzip.open(path +"results_for_" + str(conversion_rate) + ".gz", "wb") as handle:
