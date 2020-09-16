@@ -72,5 +72,8 @@ def load_pickle(file_name, path='./datasets/'):
 if __name__ == '__main__':
     # If main program,
     # create pickle-files.
+    if not os.path.exists('synthetic_data'):
+        # Create it!
+        os.mkdir("synthetic_data")
     for rate in [.041, .02, .01, .005, .002, .001]:
         create_pickles(set_conversion_rate = rate)
