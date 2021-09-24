@@ -14,7 +14,7 @@ import load_data
 
 CRITEO_FORMAT = load_data.DATA_FORMAT
 # CRITEO_FORMAT['file_name'] = 'criteo_100k.csv'  # This is for testing.
-CRITEO_FORMAT['file_name'] = 'criteo-uplift.csv'  # This is the actual experiment data.
+CRITEO_FORMAT['file_name'] = 'criteo-uplift-v2.1.csv'  # This is the actual experiment data.
 
 HILLSTROM_FORMAT = load_data.HILLSTROM_FORMAT_1
 # Already contains filename.

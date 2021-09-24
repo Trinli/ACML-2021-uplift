@@ -1,6 +1,6 @@
-# Undersampling and calibration for uplift modeling
+# Uplift Modeling with High Class Imbalance
 
-Code used to produce results presented in the publication "Undersampling and Calibration for Uplift Modeling".
+Code used to produce results presented in the publication "Uplift Modeling with High Class Imbalance."
 
 
 ## Code preparation
@@ -12,6 +12,8 @@ Requirements are listed in requirements.txt.
 1. Download data
  - http://ailab.criteo.com/criteo-uplift-prediction-dataset/
  - https://blog.minethatdata.com/2008/03/minethatdata-e-mail-analytics-and-data.html
+ Note that the criteo-uplift-1 dataset used in the experiments is not available
+ anymore and is replaced by criteo-uplift-v2.1.
 2. Extract data to .csv-file and store in ./datasets/
 3. Run pickle_dataset.py to perform the normalization we used in the experiments.
    The script also splits the data randomly into training, validation, and testing sets,

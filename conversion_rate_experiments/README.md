@@ -1,4 +1,4 @@
-# Undersampling and calibration for uplift modeling
+# Uplift Modeling with High Class Imbalance
 Code for conversion rate experiments for uplift modeling.
 
 1. Run the experiments in the parent directory. Following those instructions,
@@ -10,8 +10,6 @@ Code for conversion rate experiments for uplift modeling.
 3. Run 
    ```python conversion_rate_experiments.py```.
    This will run the actual conversion rate
-   experiments. The results are printed to screen, although they are also
-   stored in a rather convoluted format to file. We will have to fix that
-   before publishing.
+   experiments.
 4. Results are printed to screen and stored in uplift_results.csv. Look for rows with
    'Test description' set to 'testing set'.
