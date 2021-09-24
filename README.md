@@ -1,6 +1,6 @@
 # Uplift Modeling with High Class Imbalance
 
-Code used to produce results presented in the publication "Uplift Modeling with High Class Imbalance."
+Code used to produce results presented in the publication "Uplift Modeling with High Class Imbalance" at the 13th Asian Conference on Machine Learning (ACML 2021).
 
 
 ## Code preparation
